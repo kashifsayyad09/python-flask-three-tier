@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    # DB credentials are hardcoded in backend/Dockerfile now,
+    # so no env_file is needed here.
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend

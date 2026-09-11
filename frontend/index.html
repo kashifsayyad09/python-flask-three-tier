@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User API Frontend</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #eef2f7;
+      margin: 40px;
+      color: #333;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .header img { height: 50px; }
+    h2 { color: #2c3e50; margin: 0; }
+    h3 { color: #34495e; margin-top: 40px; }
+    table {
+      width: 70%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background-color: #fff;
+    }
+    th, td { padding: 12px; text-align: left; }
+    th { background-color: #2980b9; color: white; }
+    tr:nth-child(even) { background-color: #f4f6f8; }
+    tr:hover { background-color: #e1ecf4; }
+    input { padding: 10px; margin-right: 10px; }
+    button {
+      padding: 8px 14px;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .add-btn { background-color: #27ae60; }
+    .list-btn { background-color: #2980b9; margin-top: 20px; }
+    .delete-btn { background-color: #e74c3c; }
+    #formMsg { margin-top: 10px; font-weight: bold; }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="https://a0.awsstatic.com/libra-css/images/logos/aws_logo_smile_1200x630.png">
+    <h2>Welcome to Multicloud DevOps</h2>
+  </div>
+
+  <!-- List Users Button -->
+  <button class="list-btn" onclick="loadUsers()">List Users</button>
+
+  <!-- User Table -->
+  <table id="userTable">
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Actions</th>
+    </tr>
+  </table>
+
+  <!-- Add User Form -->
+  <h3>Add New User</h3>
+  <form id="userForm">
+    <input type="text" id="name" placeholder="Enter Name" required>
+    <input type="email" id="email" placeholder="Enter Email" required>
+    <button class="add-btn" type="submit">Add User</button>
+  </form>
+
+  <p id="formMsg"></p>
+
+  <script>
+    // Use relative paths so frontend and backend share the same domain
+    const API_BASE = "";
+
+    // Load Users
+    function loadUsers() {
+      const table = document.getElementById("userTable");
+      table.innerHTML = `
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Actions</th>
+        </tr>
+      `;
+
+      fetch(`${API_BASE}/users`)
+        .then(res => res.json())
+        .then(users => {
+          users.forEach(user => {
+            const row = table.insertRow();
+            row.insertCell(0).innerText = user.id;
+            row.insertCell(1).innerText = user.name;
+            row.insertCell(2).innerText = user.email;
+
+            const actionCell = row.insertCell(3);
+            const deleteBtn = document.createElement("button");
+            deleteBtn.innerText = "Delete";
+            deleteBtn.className = "delete-btn";
+            deleteBtn.onclick = () => deleteUser(user.id);
+            actionCell.appendChild(deleteBtn);
+          });
+        })
+        .catch(err => console.error(err));
+    }
+
+    // Delete User
+    function deleteUser(id) {
+      if (!confirm("Delete this user?")) return;
+      fetch(`${API_BASE}/users/delete/${id}`, { method: "DELETE" })
+        .then(res => res.json())
+        .then(result => {
+          alert(result.message || result.error);
+          loadUsers();
+        })
+        .catch(err => console.error(err));
+    }
+
+    // Add User
+    document.getElementById("userForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+
+      fetch(`${API_BASE}/users/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email })
+      })
+      .then(res => res.json())
+      .then(result => {
+        document.getElementById("formMsg").textContent =
+          result.message || result.error;
+        document.getElementById("userForm").reset();
+        loadUsers();
+      })
+      .catch(err => console.error(err));
+    });
+
+    // Auto load on page start
+    loadUsers();
+  </script>
+</body>
+</html>

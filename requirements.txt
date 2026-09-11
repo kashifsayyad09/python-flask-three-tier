@@ -1,5 +1,0 @@
-Flask
-flask-cors
-mysql-connector-python
-redis
-gunicorn
