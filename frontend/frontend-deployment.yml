@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: main-frontend-deployment
+  labels:
+    app: main-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: main-frontend
+  template:
+    metadata:
+      labels:
+        app: main-frontend
+    spec:
+      containers:
+      - name: main-frontend
+        image: 
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-service
+  labels:
+    app: main-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: main-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
