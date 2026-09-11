@@ -28,7 +28,7 @@ env:
 
 jobs:
   backend-ci:
-    name: Build and Push Backend Image
+    name: Build, Push and Update Deployment
     runs-on: ubuntu-latest
 
     steps:
@@ -42,8 +42,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Verify AWS Identity
-        run: |
-          aws sts get-caller-identity
+        run: aws sts get-caller-identity
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -52,7 +51,7 @@ jobs:
       - name: Build Backend Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ github.run_number }}
         run: |
           docker build \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
@@ -61,16 +60,16 @@ jobs:
       - name: Tag Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ github.run_number }}
         run: |
           docker tag \
             $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
             $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      - name: Push SHA Image to ECR
+      - name: Push Image to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ github.run_number }}
         run: |
           docker push \
             $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -82,10 +81,30 @@ jobs:
           docker push \
             $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
+      - name: Update Backend Deployment
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.run_number }}
+        run: |
+          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          sed -i "s|^[[:space:]]*image:.*|          image: $IMAGE_URI|" backend/backend-deployment.yml
+          grep -n "image:" backend/backend-deployment.yml
+
+      - name: Commit and Push Deployment Update
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backend/backend-deployment.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Update backend image to build ${{ github.run_number }}"
+          git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
+
       - name: Display Image URI
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ github.run_number }}
         run: |
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
