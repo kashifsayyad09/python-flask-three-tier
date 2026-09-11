@@ -4,17 +4,13 @@ from flask_cors import CORS
 import mysql.connector
 from dotenv import load_dotenv
 
-# Load variables from a local .env file when present (no-op in production
-# containers, where the values are injected as real environment variables).
+
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Database Configuration - read from environment variables only.
-# Never hardcode credentials here; set them via the .env file locally,
-# or via the backend Dockerfile / `docker run --env-file` / your
-# orchestrator's secrets mechanism in other environments.
+
 db_config = {
     'host': os.environ['DB_HOST'],
     'user': os.environ['DB_USER'],
