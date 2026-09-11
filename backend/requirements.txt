@@ -1,5 +1,6 @@
 Flask
 flask-cors
+pymysql
 mysql-connector-python
 redis
 gunicorn
