@@ -4,8 +4,7 @@ services:
   backend:
     build:
       context: ./backend
-    # DB credentials are hardcoded in backend/Dockerfile now,
-    # so no env_file is needed here.
+
     ports:
       - "5000:5000"
 
