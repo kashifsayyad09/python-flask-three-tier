@@ -1,7 +1,7 @@
+
 name: Backend CI
 
 on:
-  workflow_dispatch:
   # push:
   #   branches:
   #     - main
@@ -9,14 +9,7 @@ on:
   #     - "backend/**"
   #     - ".github/workflows/backend.yml"
 
-  # pull_request:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - "backend/**"
-  #     - ".github/workflows/backend.yml"
-
-  
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -34,6 +27,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -42,7 +37,8 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Verify AWS Identity
-        run: aws sts get-caller-identity
+        run: |
+          aws sts get-caller-identity
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -99,7 +95,8 @@ jobs:
           git add backend/backend-deployment.yml
           git diff --cached --quiet && exit 0
           git commit -m "Update backend image to build ${{ github.run_number }}"
-          git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
+          git remote set-url origin "https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.git"
+          git push origin HEAD:${{ github.ref_name }}
 
       - name: Display Image URI
         env:
@@ -108,3 +105,4 @@ jobs:
         run: |
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
