@@ -1,7 +1,7 @@
 name: Backend CI
 
 on:
-  workflow_dis
+  workflow_dispatch:
   # push:
   #   branches:
   #     - main
@@ -16,7 +16,7 @@ on:
   #     - "backend/**"
   #     - ".github/workflows/backend.yml"
 
-  workflow_dispatch:
+  
 
 permissions:
   id-token: write
