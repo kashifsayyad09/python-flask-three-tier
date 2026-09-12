@@ -14,4 +14,4 @@ data:
   DB_HOST: "supra-db.cglk6qeoajr5.us-east-1.rds.amazonaws.com"
   DB_USER: "admin"
   DB_PASSWORD: "Root1234"
-  DB_NAME: "cloud"
+  DB_NAME: "dev"
