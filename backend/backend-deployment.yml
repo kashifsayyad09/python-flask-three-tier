@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: backend-container
-          image: 614374457256.dkr.ecr.us-east-1.amazonaws.com/python-flask-backend:3
+          image: 614374457256.dkr.ecr.us-east-1.amazonaws.com/python-flask-backend:4
           ports:
             - containerPort: 5000
           envFrom:
