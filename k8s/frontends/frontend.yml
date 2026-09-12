@@ -5,13 +5,16 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   source:
     repoURL: https://github.com/kashifsayyad09/python-flask-three-tier.git
-    path: frontend/main
+    path: frontend
     targetRevision: main
+
   destination:
     server: https://kubernetes.default.svc
     namespace: microservices
+
   syncPolicy:
     automated:
       prune: false
