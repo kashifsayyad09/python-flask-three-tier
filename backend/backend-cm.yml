@@ -8,10 +8,8 @@ data:
 #if mysql on containrt
   #DB_HOST: "mysql-service"
   #DB_USER: "root"
-  #DB_PASSWORD: "root"
   #DB_NAME: "cloud"
 #if mysql on RDS
-  DB_HOST: "ali-rds.culegkwyi6zs.us-east-1.rds.amazonaws.com"
+  DB_HOST: "supra-db.cglk6qeoajr5.us-east-1.rds.amazonaws.com"
   DB_USER: "admin"
-  DB_PASSWORD: "Cloud123"
-  DB_NAME: "cloud"
+  DB_NAME: "dev"

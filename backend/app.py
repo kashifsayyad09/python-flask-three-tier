@@ -4,17 +4,13 @@ from flask_cors import CORS
 import mysql.connector
 from dotenv import load_dotenv
 
-# Load variables from a local .env file when present (no-op in production
-# containers, where the values are injected as real environment variables).
+
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Database Configuration - read from environment variables only.
-# Never hardcode credentials here; set them via the .env file locally,
-# or via the backend Dockerfile / `docker run --env-file` / your
-# orchestrator's secrets mechanism in other environments.
+
 db_config = {
     'host': os.environ['DB_HOST'],
     'user': os.environ['DB_USER'],
@@ -24,11 +20,16 @@ db_config = {
 
 # Utility: Get DB connection
 def get_db_connection():
-    return mysql.connector.connect(**db_config)
+    return mysql.connector.connect(
+        connection_timeout=10,
+        **db_config
+    )
 
 # 1️⃣ Get all users
 @app.route('/users', methods=['GET'])
 def get_users():
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -38,12 +39,16 @@ def get_users():
     except mysql.connector.Error as err:
         return jsonify({'error': str(err)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 # 2️⃣ Get user by ID
 @app.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -55,8 +60,10 @@ def get_user(user_id):
     except mysql.connector.Error as err:
         return jsonify({'error': str(err)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 # 3️⃣ Add a new user
 @app.route('/users/add', methods=['POST'])
@@ -67,6 +74,8 @@ def add_user():
     if not name or not email:
         return jsonify({'error': 'Name and Email are required'}), 400
 
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -76,8 +85,10 @@ def add_user():
     except mysql.connector.Error as err:
         return jsonify({'error': str(err)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 # 4️⃣ Update user by ID
 @app.route('/users/update/<int:user_id>', methods=['PUT'])
@@ -88,6 +99,8 @@ def update_user(user_id):
     if not name or not email:
         return jsonify({'error': 'Name and Email are required'}), 400
 
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -101,12 +114,16 @@ def update_user(user_id):
     except mysql.connector.Error as err:
         return jsonify({'error': str(err)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 # 5️⃣ Delete user by ID
 @app.route('/users/delete/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
+    conn = None
+    cursor = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -120,8 +137,10 @@ def delete_user(user_id):
     except mysql.connector.Error as err:
         return jsonify({'error': str(err)}), 500
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 # 🔹 Simple Hello route
 @app.route('/')
@@ -130,4 +149,5 @@ def index():
 
 # Entry Point
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').strip().lower() == 'true'
+    app.run(host='0.0.0.0', port=5000, debug=debug_mode)

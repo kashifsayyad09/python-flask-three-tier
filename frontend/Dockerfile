@@ -1,4 +1,4 @@
-FROM nginx 
+FROM nginx:1.27
 WORKDIR /usr/share/nginx/html
 COPY index.html .
 RUN rm -rf /etc/nginx/conf.d/default.conf
